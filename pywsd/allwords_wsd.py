@@ -32,11 +32,11 @@ def disambiguate(sentence, algorithm=simple_lesk,
     tagged_sentence = []
     # Pre-lemmatize the sentnece before WSD
     if not context_is_lemmatized:
-        surface_words, lemmas, morphy_poss = lemmatize_sentence(sentence, keepWordPOS=True)
+        surface_words, lemmas, morphy_poss, penn = lemmatize_sentence(sentence, keepWordPOS=True)
         lemma_sentence = " ".join(lemmas)
     else:
         lemma_sentence = sentence # TODO: Miss out on POS specification, how to resolve?
-    for word, lemma, pos in zip(surface_words, lemmas, morphy_poss):
+    for word, lemma, pos, pen in zip(surface_words, lemmas, morphy_poss, penn):
         if lemma not in stopwords: # Checks if it is a content word
             try:
                 wn.synsets(lemma)[0]
@@ -51,7 +51,7 @@ def disambiguate(sentence, algorithm=simple_lesk,
         else:
             synset = '#STOPWORD/PUNCTUATION#'
         if keepLemmas:
-            tagged_sentence.append((word, lemma, synset))
+            tagged_sentence.append((word, lemma, pos, pen, synset))
         else:
             tagged_sentence.append((word, synset))
     # Change #NOT_IN_WN# and #STOPWORD/PUNCTUATION# into None.
@@ -59,6 +59,6 @@ def disambiguate(sentence, algorithm=simple_lesk,
         tagged_sentence = [(word, None) if str(tag).startswith('#')
                            else (word, tag) for word, tag in tagged_sentence]
     if prefersNone and keepLemmas:
-        tagged_sentence = [(word, lemma, None) if str(tag).startswith('#')
-                           else (word, lemma, tag) for word, lemma, tag in tagged_sentence]
+        tagged_sentence = [(word, lemma, pos, None) if str(tag).startswith('#')
+                           else (word, lemma, pos, pen, tag) for word, lemma, pos, pen, tag in tagged_sentence]
     return tagged_sentence
